@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comulate ROI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0B0F1A;
+    --bg-card: #131825;
+    --bg-card-hover: #181E2E;
+    --bg-input: #1C2333;
+    --border: #252D3F;
+    --text-primary: #FFFFFF;
+    --text-secondary: #8B95A9;
+    --text-muted: #5A6478;
+    --accent: #4F6EF7;
+    --accent-glow: rgba(79, 110, 247, 0.15);
+    --accent-bright: #6C8AFF;
+    --green: #34D399;
+    --green-dim: rgba(52, 211, 153, 0.12);
+    --red: #F87171;
+    --red-dim: rgba(248, 113, 113, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 28px 80px;
+  }
+
+  .header { margin-bottom: 48px; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+    margin-bottom: 20px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  h1 {
+    font-weight: 800;
+    font-size: 40px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+  }
+
+  .card:hover { background: var(--bg-card-hover); }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .input-row:last-child { border-bottom: none; }
+
+  .input-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  .input-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 140px;
+    height: 4px;
+    background: var(--bg-input);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 16px rgba(79, 110, 247, 0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 24px rgba(79, 110, 247, 0.6);
+  }
+
+  .input-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 72px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .result-card.primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #3B5BDB 100%);
+    border-color: transparent;
+    box-shadow: 0 8px 32px rgba(79, 110, 247, 0.25);
+  }
+
+  .result-card.primary .result-label { color: rgba(255,255,255,0.7); }
+  .result-card.primary .result-number { color: #fff; }
+  .result-card.primary .result-detail { color: rgba(255,255,255,0.5); }
+
+  .result-card.green {
+    border-color: rgba(52, 211, 153, 0.2);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(52, 211, 153, 0.06) 100%);
+  }
+
+  .result-card.green .result-number { color: var(--green); }
+
+  .result-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .result-number {
+    font-weight: 800;
+    font-size: 34px;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    transition: all 0.3s ease;
+  }
+
+  .result-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 14px;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-label { color: var(--text-secondary); font-weight: 400; }
+
+  .breakdown-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+  }
+
+  .breakdown-value.positive { color: var(--green); }
+  .breakdown-value.negative { color: var(--red); }
+
+  .breakdown-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0 4px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+
+  .breakdown-total .breakdown-label {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+
+  .breakdown-total .breakdown-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.02em;
+  }
+
+  .context {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin-top: 20px;
+  }
+
+  .context-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .context p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .context p:last-child { margin-bottom: 0; }
+  .context strong { color: var(--text-primary); font-weight: 600; }
+
+  .stat-pill {
+    display: inline-block;
+    background: var(--accent-glow);
+    color: var(--accent-bright);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 2px 10px;
+    border-radius: 6px;
+  }
+
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .footer-right { font-style: italic; }
+
+  @media (max-width: 700px) {
+    .page { padding: 32px 16px 56px; }
+    h1 { font-size: 28px; }
+    .results-grid { grid-template-columns: 1fr; }
+    input[type="range"] { width: 100px; }
+    .input-row { flex-wrap: wrap; gap: 8px; }
+    .result-number { font-size: 28px; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .result-card, .context {
+    animation: fadeIn 0.5s ease both;
+  }
+
+  .card:nth-child(2) { animation-delay: 0.06s; }
+  .results-grid { animation: fadeIn 0.5s ease 0.12s both; }
+  .context { animation-delay: 0.18s; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="eyebrow">ROI Calculator</div>
+    <h1>The cost of manual<br>broker accounting</h1>
+    <p class="subtitle">Adjust assumptions to match your brokerage. Every output recalculates in real time.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Your brokerage</div>
+    <div class="input-row">
+      <div class="input-label">Annual commission revenue</div>
+      <div class="input-control">
+        <input type="range" id="revenue" min="25000000" max="500000000" step="5000000" value="150000000">
+        <span class="input-value" id="revenue-val"></span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Accounting FTEs<div class="input-hint">Direct bill, reconciliation, and payables</div></div>
+      <div class="input-control">
+        <input type="range" id="ftes" min="3" max="80" step="1" value="25">
+        <span class="input-value" id="ftes-val"></span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Fully loaded cost per FTE<div class="input-hint">Salary + benefits + overhead</div></div>
+      <div class="input-control">
+        <input type="range" id="costPerFte" min="50000" max="150000" step="5000" value="85000">
+        <span class="input-value" id="costPerFte-val"></span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Commission leakage<div class="input-hint">Revenue lost to missing or unreconciled commissions</div></div>
+      <div class="input-control">
+        <input type="range" id="leakage" min="0.5" max="5" step="0.25" value="2">
+        <span class="input-value" id="leakage-val"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">With Comulate</div>
+    <div class="input-row">
+      <div class="input-label">Manual work eliminated<div class="input-hint">90%+ across live deployments</div></div>
+      <div class="input-control">
+        <input type="range" id="automation" min="50" max="95" step="5" value="90">
+        <span class="input-value" id="automation-val"></span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Commission recovery rate<div class="input-hint">Leaked commissions identified and recovered</div></div>
+      <div class="input-control">
+        <input type="range" id="recovery" min="20" max="80" step="5" value="60">
+        <span class="input-value" id="recovery-val"></span>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-label">Annual Comulate cost</div>
+      <div class="input-control">
+        <input type="range" id="comulateCost" min="50000" max="500000" step="25000" value="250000">
+        <span class="input-value" id="comulateCost-val"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-grid">
+    <div class="result-card primary">
+      <div class="result-label">Net annual benefit</div>
+      <div class="result-number" id="netBenefit"></div>
+      <div class="result-detail">After platform cost</div>
+    </div>
+    <div class="result-card green">
+      <div class="result-label">Return on investment</div>
+      <div class="result-number" id="roi"></div>
+      <div class="result-detail">For every $1 spent</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Payback period</div>
+      <div class="result-number" id="payback"></div>
+      <div class="result-detail">To full ROI</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Savings breakdown</div>
+    <div class="breakdown-row">
+      <span class="breakdown-label">Labor cost savings</span>
+      <span class="breakdown-value positive" id="laborSavings"></span>
+    </div>
+    <div class="breakdown-row">
+      <span class="breakdown-label">Commissions recovered</span>
+      <span class="breakdown-value positive" id="commRecovered"></span>
+    </div>
+    <div class="breakdown-row">
+      <span class="breakdown-label">Comulate platform cost</span>
+      <span class="breakdown-value negative" id="platformCost"></span>
+    </div>
+    <div class="breakdown-total">
+      <span class="breakdown-label">Net annual benefit</span>
+      <span class="breakdown-value" id="netBenefitBreakdown"></span>
+    </div>
+  </div>
+
+  <div class="context">
+    <div class="context-label">Why now</div>
+    <p>Comulate partners with <span class="stat-pill">50+ top 100 US brokers</span> including Lockton, Risk Strategies, Heffernan, and M3 Insurance. Recent $20M round with strategic investment from <strong>Workday</strong>.</p>
+    <p>Brokers on manual processes lose <strong>1 to 4% of commission revenue</strong> annually to leakage alone, before counting the labor cost of reconciliation. Most don't know the number because they've never had the tooling to measure it.</p>
+    <p>The question isn't whether to automate. It's how much you're losing every month you wait.</p>
+  </div>
+
+  <div class="footer">
+    <div>Prepared by Vedika Jain</div>
+    <div class="footer-right">Drag sliders to model your brokerage</div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+  const fmtShort = n => {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K';
+    return '$' + Math.round(n);
+  };
+
+  function calculate() {
+    const revenue = +$('revenue').value;
+    const ftes = +$('ftes').value;
+    const costPerFte = +$('costPerFte').value;
+    const leakage = +$('leakage').value / 100;
+    const automation = +$('automation').value / 100;
+    const recovery = +$('recovery').value / 100;
+    const comulateCost = +$('comulateCost').value;
+
+    $('revenue-val').textContent = fmtShort(revenue);
+    $('ftes-val').textContent = ftes;
+    $('costPerFte-val').textContent = fmtShort(costPerFte);
+    $('leakage-val').textContent = $('leakage').value + '%';
+    $('automation-val').textContent = $('automation').value + '%';
+    $('recovery-val').textContent = $('recovery').value + '%';
+    $('comulateCost-val').textContent = fmtShort(comulateCost);
+
+    const laborSavings = ftes * costPerFte * 0.6 * automation;
+    const commRecovered = revenue * leakage * recovery;
+    const grossSavings = laborSavings + commRecovered;
+    const netBenefit = grossSavings - comulateCost;
+    const roi = grossSavings / comulateCost;
+    const paybackMonths = comulateCost / (grossSavings / 12);
+
+    $('netBenefit').textContent = fmtShort(netBenefit);
+    $('roi').textContent = roi.toFixed(1) + 'x';
+    $('payback').textContent = paybackMonths < 1 ? '<1 mo' : paybackMonths.toFixed(1) + ' mo';
+
+    $('laborSavings').textContent = '+' + fmt(laborSavings);
+    $('commRecovered').textContent = '+' + fmt(commRecovered);
+    $('platformCost').textContent = '(' + fmt(comulateCost) + ')';
+    $('netBenefitBreakdown').textContent = fmt(netBenefit);
+  }
+
+  document.querySelectorAll('input[type="range"]').forEach(input => {
+    input.addEventListener('input', calculate);
+  });
+
+  calculate();
+</script>
+</body>
+</html>
